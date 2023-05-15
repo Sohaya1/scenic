@@ -64,6 +64,8 @@ def apply_weights(output: jnp.ndarray, weights: jnp.ndarray) -> jnp.ndarray:
   Returns:
     Weighted output.
   """
+  if output.ndim < weights.ndim:
+    raise ValueError('Output rank should be higher or equal to weights rank.')
   desired_weights_shape = weights.shape + (1,) * (output.ndim - weights.ndim)
   weights = jax.lax.broadcast_in_dim(
       weights,
@@ -138,7 +140,6 @@ def weighted_top_one_correctly_classified(
   # Extracts the label at the highest logit index for each input.
   top1_correct = jnp.take_along_axis(
       multi_hot_targets, top1_idx[..., None], axis=-1)
-  top1_correct = jnp.squeeze(top1_correct)
   if weights is not None:
     top1_correct = apply_weights(top1_correct, weights)
 
